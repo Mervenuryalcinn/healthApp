@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import '../models/user.dart';
-import 'edit_profile_screen.dart';
+import '../models/user.dart';                // Kullanıcı modelini içe aktar
+import 'edit_profile_screen.dart';          // Profil düzenleme ekranı
 
+// Kullanıcı profilini gösteren ekran
+// user: Başlangıçta gösterilecek kullanıcı bilgileri
+// onProfileUpdated: Profil güncellenince ana ekrana bilgi göndermek için callback
 class ProfileScreen extends StatefulWidget {
   final AppUser user;
   final Function(AppUser) onProfileUpdated;
@@ -13,11 +16,12 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  late AppUser _currentUser;
+  late AppUser _currentUser; // Ekranda gösterilen güncel kullanıcı bilgileri
 
   @override
   void initState() {
     super.initState();
+    // Başlangıçta gelen user bilgisini local değişkene atar
     _currentUser = widget.user;
   }
 
@@ -33,6 +37,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Profil fotoğrafı (placeholder)
             Center(
               child: CircleAvatar(
                 radius: 50,
@@ -45,6 +50,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             SizedBox(height: 20),
+            // Başlık
             Center(
               child: Text(
                 'Profil Bilgileri',
@@ -52,6 +58,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             SizedBox(height: 30),
+
+            // Kullanıcı bilgilerini gösteren kart
             Card(
               elevation: 4,
               child: Padding(
@@ -68,10 +76,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             SizedBox(height: 30),
+
+            // Profili düzenleme butonu
             Center(
               child: ElevatedButton(
                 onPressed: () async {
-                  // Profil düzenleme ekranına yönlendirme ve sonucu bekleme
+                  // Profil düzenleme ekranına git ve güncellenmiş kullanıcıyı bekle
                   final updatedUser = await Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -79,19 +89,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   );
 
-                  // Eğer kullanıcı bilgileri güncellendiyse, ana bileşeni bildir ve kendi state'ini güncelle
+                  // Kullanıcı bilgileri güncellenmişse hem kendi state’i hem de üst widget bilgilendirilir
                   if (updatedUser != null && updatedUser is AppUser) {
                     setState(() {
-                      _currentUser = updatedUser;
+                      _currentUser = updatedUser; // Ekrandaki bilgiyi güncelle
                     });
-                    widget.onProfileUpdated(updatedUser);
+                    widget.onProfileUpdated(updatedUser); // Callback ile ana sayfaya bildir
 
-                    // Başarı mesajı göster
+                    // Başarı mesajı (SnackBar) göster
                     ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Profil bilgileriniz güncellendi'),
-                          backgroundColor: Colors.green,
-                        )
+                      SnackBar(
+                        content: Text('Profil bilgileriniz güncellendi'),
+                        backgroundColor: Colors.green,
+                      ),
                     );
                   }
                 },
@@ -113,12 +123,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  // Tek satır bilgi gösterimi için yardımcı widget
   Widget _buildInfoRow(String label, String value, IconData icon) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
-          Icon(icon, color: Colors.blue),
+          Icon(icon, color: Colors.blue), // Bilgi ikon
           SizedBox(width: 16),
           Expanded(
             flex: 2,
