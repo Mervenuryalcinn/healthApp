@@ -1,29 +1,22 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
+// 🔹 Bu dosya Flutter widget testleri için örnek bir test içerir.
+// 🔹 WidgetTester kullanarak widget'lar ile etkileşim kurabilir,
+//    metinleri kontrol edebilir ve widget özelliklerini doğrulayabilirsiniz.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:health_app/main.dart';
 
 void main() {
+  // 🔹 Basit bir smoke test: sayacın doğru çalıştığını test eder
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+    // 🔹 Uygulamayı oluştur ve bir frame tetikle
     await tester.pumpWidget(HealthApp());
-
-    // Verify that our counter starts at 0.
+    // 🔹 Başlangıçta sayacın 0 olduğunu doğrula
     expect(find.text('0'), findsOneWidget);
     expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
+    // 🔹 '+' ikonuna tıkla ve frame tetikle
     await tester.tap(find.byIcon(Icons.add));
     await tester.pump();
-
-    // Verify that our counter has incremented.
+    // 🔹 Sayacın 1 arttığını doğrula
     expect(find.text('0'), findsNothing);
     expect(find.text('1'), findsOneWidget);
   });
