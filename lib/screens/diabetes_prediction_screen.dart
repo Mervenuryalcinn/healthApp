@@ -2,29 +2,30 @@
 import 'package:flutter/material.dart';
 import 'package:health_app/services/api_service.dart';
 
+// Tip 2 Diyabet tahmini için kullanıcıdan sağlık verilerini alan ekran
 class DiabetesPredictionScreen extends StatefulWidget {
   @override
   _DiabetesPredictionScreenState createState() => _DiabetesPredictionScreenState();
 }
 
 class _DiabetesPredictionScreenState extends State<DiabetesPredictionScreen> {
-  final _formKey = GlobalKey<FormState>();
-  bool _isLoading = false;
+  final _formKey = GlobalKey<FormState>(); // Form doğrulama anahtarı
+  bool _isLoading = false; // API isteği sırasında yüklenme durumunu kontrol eder
 
-  // Form değişkenleri
-  String _gender = 'Female';
-  String _smokingHistory = 'never';
-  double _age = 30;
-  int _hypertension = 0;
-  int _heartDisease = 0;
-  double _bmi = 22.0;
-  double _hba1cLevel = 5.0;
-  double _bloodGlucoseLevel = 100;
+  // Formda tutulacak değişkenler (kullanıcı verileri)
+  String _gender = 'Female';          // Cinsiyet
+  String _smokingHistory = 'never';   // Sigara kullanımı geçmişi
+  double _age = 30;                    // Yaş
+  int _hypertension = 0;               // Hipertansiyon var mı (0 = yok, 1 = var)
+  int _heartDisease = 0;               // Kalp hastalığı var mı (0 = yok, 1 = var)
+  double _bmi = 22.0;                  // Vücut kitle indeksi (BMI)
+  double _hba1cLevel = 5.0;            // HbA1c seviyesi
+  double _bloodGlucoseLevel = 100;     // Kan şekeri seviyesi (mg/dL)
 
   // Cinsiyet seçenekleri
   final List<String> _genders = ['Female', 'Male', 'Other'];
 
-  // Sigara kullanımı seçenekleri
+  // Sigara kullanım durumu seçenekleri
   final List<String> _smokingOptions = [
     'never', 'former', 'current', 'not current', 'ever', 'No Info'
   ];
@@ -33,14 +34,15 @@ class _DiabetesPredictionScreenState extends State<DiabetesPredictionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tip 2 Diyabet Tahmini'),
+        title: Text('Tip 2 Diyabet Tahmini'), // Uygulama üst başlık
       ),
+      // Eğer API isteği yapılıyorsa yüklenme animasyonu göster
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
         padding: EdgeInsets.all(16.0),
         child: Form(
-          key: _formKey,
+          key: _formKey, // Form doğrulama anahtarı
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -50,14 +52,17 @@ class _DiabetesPredictionScreenState extends State<DiabetesPredictionScreen> {
               ),
               SizedBox(height: 20),
 
-              // Cinsiyet seçimi
+              // 🔹 Cinsiyet seçimi dropdown
               DropdownButtonFormField<String>(
                 value: _gender,
                 items: _genders.map((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
-                    child: Text(value == 'Female' ? 'Kadın' :
-                    value == 'Male' ? 'Erkek' : 'Diğer'),
+                    child: Text(
+                      value == 'Female' ? 'Kadın'
+                          : value == 'Male' ? 'Erkek'
+                          : 'Diğer',
+                    ),
                   );
                 }).toList(),
                 onChanged: (newValue) {
@@ -72,14 +77,14 @@ class _DiabetesPredictionScreenState extends State<DiabetesPredictionScreen> {
               ),
               SizedBox(height: 15),
 
-              // Yaş
+              // 🔹 Yaş giriş alanı
               TextFormField(
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: 'Yaş',
                   border: OutlineInputBorder(),
                 ),
-                initialValue: _age.toString(),
+                initialValue: _age.toString(), // Varsayılan değer
                 validator: (value) {
                   if (value == null || value.isEmpty) return 'Lütfen yaşınızı girin';
                   if (double.tryParse(value) == null) return 'Geçerli bir sayı girin';
@@ -91,7 +96,7 @@ class _DiabetesPredictionScreenState extends State<DiabetesPredictionScreen> {
               ),
               SizedBox(height: 15),
 
-              // Hipertansiyon
+              // 🔹 Hipertansiyon var mı?
               DropdownButtonFormField<int>(
                 value: _hypertension,
                 items: [
@@ -110,7 +115,7 @@ class _DiabetesPredictionScreenState extends State<DiabetesPredictionScreen> {
               ),
               SizedBox(height: 15),
 
-              // Kalp Hastalığı
+              // 🔹 Kalp hastalığı var mı?
               DropdownButtonFormField<int>(
                 value: _heartDisease,
                 items: [
@@ -129,10 +134,11 @@ class _DiabetesPredictionScreenState extends State<DiabetesPredictionScreen> {
               ),
               SizedBox(height: 15),
 
-              // Sigara Kullanımı
+              // 🔹 Sigara kullanım durumu
               DropdownButtonFormField<String>(
                 value: _smokingHistory,
                 items: _smokingOptions.map((String value) {
+                  // Kullanıcıya gösterilecek Türkçe açıklama
                   String displayText;
                   switch(value) {
                     case 'never': displayText = 'Hiç kullanmadım'; break;
@@ -160,7 +166,7 @@ class _DiabetesPredictionScreenState extends State<DiabetesPredictionScreen> {
               ),
               SizedBox(height: 15),
 
-              // BMI
+              // 🔹 Vücut kitle indeksi (BMI)
               TextFormField(
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
@@ -179,7 +185,7 @@ class _DiabetesPredictionScreenState extends State<DiabetesPredictionScreen> {
               ),
               SizedBox(height: 15),
 
-              // HbA1c Seviyesi
+              // 🔹 HbA1c seviyesi
               TextFormField(
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
@@ -198,7 +204,7 @@ class _DiabetesPredictionScreenState extends State<DiabetesPredictionScreen> {
               ),
               SizedBox(height: 15),
 
-              // Kan Şekeri Seviyesi
+              // 🔹 Kan şekeri seviyesi
               TextFormField(
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
@@ -217,9 +223,9 @@ class _DiabetesPredictionScreenState extends State<DiabetesPredictionScreen> {
               ),
               SizedBox(height: 25),
 
-              // Tahmin Yap Butonu
+              // 🔹 Tahmin Yap butonu
               ElevatedButton(
-                onPressed: _predictDiabetes,
+                onPressed: _predictDiabetes, // API isteğini başlatır
                 child: Text('Tahmin Yap'),
                 style: ElevatedButton.styleFrom(
                   minimumSize: Size(double.infinity, 50),
@@ -234,14 +240,16 @@ class _DiabetesPredictionScreenState extends State<DiabetesPredictionScreen> {
     );
   }
 
+  // ✅ API isteği: Form verilerini backend'e gönderir ve sonucu alır
   void _predictDiabetes() async {
     if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
+      _formKey.currentState!.save(); // Formdaki verileri değişkenlere kaydet
       setState(() {
-        _isLoading = true;
+        _isLoading = true; // Yüklenme animasyonu göster
       });
 
       try {
+        // Backend'e gönderilecek veri
         final predictionData = {
           'gender': _gender,
           'age': _age,
@@ -251,11 +259,13 @@ class _DiabetesPredictionScreenState extends State<DiabetesPredictionScreen> {
           'bmi': _bmi,
           'HbA1c_level': _hba1cLevel,
           'blood_glucose_level': _bloodGlucoseLevel,
-          'diabetes': 0,  // Zorunlu alan backend için
+          'diabetes': 0,  // Backend için gerekli sabit alan
         };
 
+        // ApiService üzerinden tahmin isteği gönder
         final response = await ApiService.predictDiabetes(predictionData);
 
+        // Backend yanıtı başarılıysa sonuç göster
         if (response['success'] == true && response['result'] != null) {
           _showPredictionResult(response);
         } else {
@@ -265,20 +275,22 @@ class _DiabetesPredictionScreenState extends State<DiabetesPredictionScreen> {
           );
         }
       } catch (e) {
+        // Ağ veya sunucu hatası
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Bir hata oluştu: $e')),
         );
       } finally {
         setState(() {
-          _isLoading = false;
+          _isLoading = false; // Yüklenme animasyonu durdur
         });
       }
     }
   }
 
+  // ✅ Tahmin sonucu ve önerileri kullanıcıya gösteren dialog
   void _showPredictionResult(Map<String, dynamic> response) {
-    final result = response['result'] ?? {};
-    final recommendations = response['recommendations'] ?? [];
+    final result = response['result'] ?? {}; // Tahmin sonucu
+    final recommendations = response['recommendations'] ?? []; // Backend önerileri
 
     showDialog(
       context: context,
@@ -288,10 +300,12 @@ class _DiabetesPredictionScreenState extends State<DiabetesPredictionScreen> {
           content: SingleChildScrollView(
             child: ListBody(
               children: [
+                // Diyabet risk yüzdesi
                 Text('Diyabet Riski: ${result['risk_percentage'] ?? 0}%'),
                 SizedBox(height: 10),
                 Text('Öneriler:'),
                 SizedBox(height: 10),
+                // Öneriler listesi
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: recommendations.map<Widget>((rec) =>
@@ -304,7 +318,7 @@ class _DiabetesPredictionScreenState extends State<DiabetesPredictionScreen> {
             TextButton(
               child: Text('Tamam'),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Dialog kapat
               },
             ),
           ],
