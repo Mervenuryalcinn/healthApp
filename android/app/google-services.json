@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "837607171197",
+    "project_id": "kronikdemo",
+    "storage_bucket": "kronikdemo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:837607171197:android:61b758e353252a4eddbd14",
+        "android_client_info": {
+          "package_name": "com.example.saglik"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVk1ddGNlBXF9I38htEAcdAA1CaW3xXug"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
