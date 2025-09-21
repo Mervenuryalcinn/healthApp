@@ -4,6 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user.dart';
 
+/// 🔹 StorageService
+/// - Singleton sınıfı, kullanıcı verilerini hem Firestore hem de local storage (SharedPreferences) üzerinde yönetir.
+/// - Kullanıcıya özel veriler için anahtar oluşturur.
 class StorageService {
   static final StorageService _instance = StorageService._internal();
   factory StorageService() => _instance;
@@ -13,23 +16,25 @@ class StorageService {
   String? _currentUserId;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  /// 🔹 SharedPreferences başlat
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
   }
 
-  // Kullanıcı ID'sini ayarla
+  /// 🔹 Kullanıcı ID'sini ayarla
   void setUserId(String userId) {
     _currentUserId = userId;
   }
 
-  // Kullanıcıya özel anahtar oluştur
+  /// 🔹 Kullanıcıya özel anahtar oluştur
+  /// - Local storage üzerinde veri çakışmalarını önler
   String _getUserKey(String key) {
     return _currentUserId != null ? '${_currentUserId}_$key' : key;
   }
 
-  // FIRESTORE İŞLEMLERİ
+  // ===================== FIRESTORE İŞLEMLERİ =====================
 
-  // Kullanıcı bilgilerini Firestore'dan al
+  /// 🔹 Firestore’dan kullanıcı bilgilerini al
   Future<AppUser?> getUserDataFromFirestore() async {
     try {
       final User? firebaseUser = FirebaseAuth.instance.currentUser;
@@ -52,7 +57,7 @@ class StorageService {
     }
   }
 
-  // Kullanıcı bilgilerini Firestore'a kaydet
+  /// 🔹 Firestore’a kullanıcı bilgilerini kaydet
   Future<void> saveUserDataToFirestore(AppUser user) async {
     try {
       await _firestore.collection('users').doc(user.id).set({
@@ -67,8 +72,9 @@ class StorageService {
     }
   }
 
-  // LOCAL STORAGE İŞLEMLERİ
+  // ===================== LOCAL STORAGE İŞLEMLERİ =====================
 
+  /// 🔹 Öneri kaydet
   Future<void> saveRecommendation(String recommendation) async {
     final key = _getUserKey('recommendations');
     List<String> recs = _prefs?.getStringList(key) ?? [];
@@ -76,20 +82,20 @@ class StorageService {
     await _prefs?.setStringList(key, recs);
   }
 
-  // Önerileri al
+  /// 🔹 Önerileri al
   List<String> getRecommendations() {
     final key = _getUserKey('recommendations');
     return _prefs?.getStringList(key) ?? [];
   }
 
-  // Şeker ölçümlerini kaydet
+  /// 🔹 Şeker ölçümlerini kaydet
   Future<void> saveBloodSugarRecords(List<Map<String, dynamic>> records) async {
     final List<String> stringList = records.map((record) =>
-    '${record['value']},${record['time'].millisecondsSinceEpoch}').toList();
+      '${record['value']},${record['time'].millisecondsSinceEpoch}').toList();
     await _prefs?.setStringList(_getUserKey('blood_sugar_records'), stringList);
   }
 
-  // Şeker ölçümlerini yükle
+  /// 🔹 Şeker ölçümlerini al
   List<Map<String, dynamic>> getBloodSugarRecords() {
     final List<String>? stringList = _prefs?.getStringList(_getUserKey('blood_sugar_records'));
     if (stringList == null) return [];
@@ -103,14 +109,14 @@ class StorageService {
     }).toList();
   }
 
-  // Tansiyon ölçümlerini kaydet
+  /// 🔹 Tansiyon ölçümlerini kaydet
   Future<void> saveBloodPressure(List<List<int?>> bloodPressure) async {
     final List<String> stringList = bloodPressure.map((bp) =>
-    '${bp[0] ?? ''},${bp[1] ?? ''}').toList();
+      '${bp[0] ?? ''},${bp[1] ?? ''}').toList();
     await _prefs?.setStringList(_getUserKey('blood_pressure'), stringList);
   }
 
-  // Tansiyon ölçümlerini yükle
+  /// 🔹 Tansiyon ölçümlerini al
   List<List<int?>> getBloodPressure() {
     final List<String>? stringList = _prefs?.getStringList(_getUserKey('blood_pressure'));
     if (stringList == null) return List.generate(5, (_) => [null, null]);
@@ -124,7 +130,7 @@ class StorageService {
     }).toList();
   }
 
-  // Tüm verileri temizle (sadece current user için)
+  /// 🔹 Mevcut kullanıcıya ait tüm local verileri temizle
   Future<void> clearCurrentUserData() async {
     if (_currentUserId != null) {
       await _prefs?.remove(_getUserKey('blood_sugar_records'));
@@ -132,7 +138,7 @@ class StorageService {
     }
   }
 
-  // Tüm kullanıcıların verilerini temizle (debug için)
+  /// 🔹 Tüm kullanıcıların local verilerini temizle (debug amaçlı)
   Future<void> clearAllUsersData() async {
     final keys = _prefs?.getKeys() ?? {};
     for (final key in keys) {
