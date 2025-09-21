@@ -11,8 +11,9 @@ import 'diabetes_prediction_screen.dart';
 import '../services/storage_service.dart';
 import 'chatbot_screen.dart';
 
+/// Ana sayfa ve alt menü (bottom navigation) barı içeren temel ekran
 class HomeScreen extends StatefulWidget {
-  final AppUser user;
+  final AppUser user; // Giriş yapan kullanıcı bilgisi
   HomeScreen({required this.user});
 
   @override
@@ -20,33 +21,33 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
-  List<List<int?>> _bloodPressure = [];
-  List<Map<String, dynamic>> _bloodSugarRecords = [];
+  int _selectedIndex = 0; // BottomNavigationBar’da seçili sekme
+  List<List<int?>> _bloodPressure = []; // Tansiyon kayıtları (günlük sistolik/diastolik)
+  List<Map<String, dynamic>> _bloodSugarRecords = []; // Kan şekeri kayıtları
   final StorageService _storageService = StorageService();
-  late AppUser _currentUser; // Yeni bir değişken ekleyin
+  late AppUser _currentUser; // Ekrandaki güncel kullanıcı bilgisi
 
   @override
   void initState() {
     super.initState();
-    _currentUser = widget.user; // widget.user'ı _currentUser'a kopyalayın
-    _initializeUserData();
+    _currentUser = widget.user; // Parametre olarak gelen kullanıcıyı state’e kopyala
+    _initializeUserData();      // Firestore ve local storage verilerini çek
   }
 
-  // HomeScreen.dart içinde _initializeUserData metodunu güncelle
+  /// Kullanıcı verilerini Firestore'dan ve local storage’dan yükler
   void _initializeUserData() async {
     try {
-      // Önce Firestore'dan kullanıcı bilgilerini al
+      // Firestore'dan kullanıcı verisini al
       final AppUser? firestoreUser =
-      await _storageService.getUserDataFromFirestore();
+          await _storageService.getUserDataFromFirestore();
 
-      // Firestore'da kullanıcı varsa onu kullan, yoksa widget.user'ı kullan
+      // Firestore’da varsa onu kullan, yoksa girişten gelen user’ı kullan
       final AppUser currentUser = firestoreUser ?? widget.user;
 
-      // StorageService'e kullanıcı ID'sini ayarla
+      // StorageService’e kullanıcı ID’sini ilet
       _storageService.setUserId(currentUser.id);
 
-      // Widget hala ekrandaysa state güncelle
+      // Widget hala ekrandaysa state’i güncelle
       if (!mounted) return;
       setState(() {
         _bloodPressure = _storageService.getBloodPressure();
@@ -58,40 +59,44 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Verileri kaydet
+  /// Güncel verileri local storage’a kaydeder
   Future<void> _saveData() async {
     await _storageService.saveBloodPressure(_bloodPressure);
     await _storageService.saveBloodSugarRecords(_bloodSugarRecords);
   }
 
+  /// BottomNavigationBar sekmesi değiştirildiğinde çalışır
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
   }
 
+  /// Tansiyon verisi güncellenince çağrılır
   void _updateBloodPressure(List<List<int?>> newBloodPressure) {
     setState(() {
       _bloodPressure = newBloodPressure;
     });
-    _saveData(); // Verileri kaydet
+    _saveData();
   }
 
+  /// Kan şekeri verisi güncellenince çağrılır
   void _updateBloodSugarRecords(List<Map<String, dynamic>> newRecords) {
     setState(() {
       _bloodSugarRecords = newRecords;
     });
-    _saveData(); // Verileri kaydet
+    _saveData();
   }
 
+  /// Kullanıcıyı sistemden çıkarır
   void _logout() async {
     await AuthService.logout();
-    // Çıkış yaparken current user ID'sini temizle
-    _storageService.setUserId('');
+    _storageService.setUserId(''); // User ID’yi temizle
     Fluttertoast.showToast(msg: 'Çıkış yapıldı');
     Navigator.pushReplacementNamed(context, '/login');
   }
 
+  /// Veri giriş ekranını açar ve sonucu alır
   Future<void> _openDataInputScreen(BuildContext context) async {
     final result = await Navigator.push(
       context,
@@ -105,6 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
 
+    // Kullanıcı veri girişi yaptıysa listeyi güncelle
     if (result != null) {
       if (result['bloodSugar'] != null) {
         setState(() {
@@ -113,14 +119,14 @@ class _HomeScreenState extends State<HomeScreen> {
             'time': DateTime.now()
           });
         });
-        _saveData(); // Verileri kaydet
+        _saveData();
       }
       if (result['bloodPressure'] != null) {
         final bp = result['bloodPressure'];
         setState(() {
           _bloodPressure[bp['day']] = [bp['systolic'], bp['diastolic']];
         });
-        _saveData(); // Verileri kaydet
+        _saveData();
       }
     }
   }
@@ -128,6 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Üst bar
       appBar: AppBar(
         title: Text('Sağlık Takip Uygulaması'),
         actions: [
@@ -137,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: _buildCurrentScreen(),
+      body: _buildCurrentScreen(), // Alt menüye göre içerik
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.blue,
@@ -153,21 +160,23 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat Bot'),
         ],
       ),
+      // Ana sayfada (+) butonu ile ölçüm ekleme
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton(
-        onPressed: () => _openDataInputScreen(context),
-        child: Icon(Icons.add),
-      )
+              onPressed: () => _openDataInputScreen(context),
+              child: Icon(Icons.add),
+            )
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
+  /// Alt menüde seçilen sekmeye göre ekrana getirilecek widget
   Widget _buildCurrentScreen() {
     switch (_selectedIndex) {
       case 0:
         return HomeContent(
-          user: _currentUser, // _currentUser kullanın
+          user: _currentUser,
           bloodPressure: _bloodPressure,
           bloodSugarRecords: _bloodSugarRecords,
           onBloodPressureUpdated: _updateBloodPressure,
@@ -183,30 +192,25 @@ class _HomeScreenState extends State<HomeScreen> {
         return RecommendationsScreen();
       case 3:
         return ProfileScreen(
-          user: _currentUser, // _currentUser kullanın
+          user: _currentUser,
           onProfileUpdated: (AppUser updatedUser) {
-            // Kullanıcı bilgileri güncellendiğinde state'i güncelle
+            // Profil güncellenince hem state hem de storage güncellenir
             setState(() {
-              _currentUser = updatedUser; // _currentUser'ı güncelleyin
-              _storageService.setUserId(updatedUser.id); // User ID'yi güncelle
+              _currentUser = updatedUser;
+              _storageService.setUserId(updatedUser.id);
             });
           },
         );
-      case 4: // 🆕 Chat Bot sekmesi
+      case 4:
         return ChatbotScreen();
       default:
-        return HomeContent(
-          user: _currentUser, // _currentUser kullanın
-          bloodPressure: _bloodPressure,
-          bloodSugarRecords: _bloodSugarRecords,
-          onBloodPressureUpdated: _updateBloodPressure,
-          onBloodSugarUpdated: _updateBloodSugarRecords,
-          onOpenDataInput: () => _openDataInputScreen(context),
-        );
+        return Container();
     }
   }
 }
 
+/// Ana sayfa içerik widget'ı
+/// Kullanıcının sağlık karnesini, son ölçümleri ve butonları gösterir
 class HomeContent extends StatefulWidget {
   final AppUser user;
   final List<List<int?>> bloodPressure;
@@ -231,6 +235,7 @@ class HomeContent extends StatefulWidget {
 class _HomeContentState extends State<HomeContent> {
   int get userAge => widget.user.age;
 
+  /// Yaş gruplarına göre tansiyon sınır değerleri
   final Map<String, List<int>> ageGroups = {
     '14-18': [100, 120, 65, 85],
     '19-39': [110, 130, 70, 85],
@@ -238,6 +243,7 @@ class _HomeContentState extends State<HomeContent> {
     '60+': [120, 140, 80, 90],
   };
 
+  /// Kullanıcının yaşına uygun grup etiketi
   String getAgeGroup(int age) {
     if (age >= 14 && age <= 18) return '14-18';
     if (age >= 19 && age <= 39) return '19-39';
@@ -245,6 +251,7 @@ class _HomeContentState extends State<HomeContent> {
     return '60+';
   }
 
+  /// Ortalama tansiyon değerini yaş grubuna göre analiz eder
   String analyzeBloodPressure(int avgSystolic, int avgDiastolic) {
     String group = getAgeGroup(userAge);
     var range = ageGroups[group]!;
@@ -253,21 +260,7 @@ class _HomeContentState extends State<HomeContent> {
     return 'Normal';
   }
 
-  void _addBloodPressure(int day, int systolic, int diastolic) {
-    setState(() {
-      widget.bloodPressure[day] = [systolic, diastolic];
-      widget.onBloodPressureUpdated(widget.bloodPressure);
-    });
-  }
-
-  void _addBloodSugar(int value) {
-    setState(() {
-      widget.bloodSugarRecords.add({'value': value, 'time': DateTime.now()});
-      widget.onBloodSugarUpdated(widget.bloodSugarRecords);
-    });
-  }
-
-  // Tüm tansiyon verilerini silme fonksiyonu
+  /// Tüm tansiyon verilerini siler
   void _clearAllBloodPressureData() {
     setState(() {
       for (int i = 0; i < widget.bloodPressure.length; i++) {
@@ -278,7 +271,7 @@ class _HomeContentState extends State<HomeContent> {
     Fluttertoast.showToast(msg: 'Tüm tansiyon verileri silindi');
   }
 
-  // Takvim görünümünü gösteren fonksiyon
+  /// 5 günlük tansiyon takvimini gösterir
   void _showCalendarView(BuildContext context) {
     showDialog(
       context: context,
@@ -303,19 +296,14 @@ class _HomeContentState extends State<HomeContent> {
                           : 'Henüz ölçüm yapılmadı'
                   ),
                   trailing: systolic != null && diastolic != null
-                      ? Icon(
-                    Icons.check_circle,
-                    color: Colors.green,
-                  )
-                      : Icon(
-                    Icons.cancel,
-                    color: Colors.red,
-                  ),
+                      ? Icon(Icons.check_circle, color: Colors.green)
+                      : Icon(Icons.cancel, color: Colors.red),
                 );
               },
             ),
           ),
           actions: [
+            // En az bir veri varsa toplu silme butonu göster
             if (widget.bloodPressure.any((bp) => bp[0] != null && bp[1] != null))
               TextButton(
                 onPressed: () {
@@ -334,7 +322,7 @@ class _HomeContentState extends State<HomeContent> {
     );
   }
 
-  // Silme işlemi onay diyaloğu
+  /// Tüm verileri silme onayı
   void _showClearConfirmationDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -362,6 +350,7 @@ class _HomeContentState extends State<HomeContent> {
 
   @override
   Widget build(BuildContext context) {
+    // Ortalama tansiyon ve son şeker değerlerini hesapla
     int sumSystolic = 0, sumDiastolic = 0, count = 0;
     for (var bp in widget.bloodPressure) {
       if (bp[0] != null && bp[1] != null) {
@@ -374,7 +363,9 @@ class _HomeContentState extends State<HomeContent> {
     int avgSystolic = count > 0 ? (sumSystolic / count).round() : 0;
     int avgDiastolic = count > 0 ? (sumDiastolic / count).round() : 0;
     String bpResult = count == 5 ? analyzeBloodPressure(avgSystolic, avgDiastolic) : '';
-    int? latestSugar = widget.bloodSugarRecords.isNotEmpty ? widget.bloodSugarRecords.last['value'] : null;
+    int? latestSugar = widget.bloodSugarRecords.isNotEmpty
+        ? widget.bloodSugarRecords.last['value']
+        : null;
 
     return SingleChildScrollView(
       padding: EdgeInsets.all(16),
@@ -384,6 +375,8 @@ class _HomeContentState extends State<HomeContent> {
           Text('Hoş Geldiniz, ${widget.user.name}!',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           SizedBox(height: 20),
+
+          /// Diyabet tahmini ekranına yönlendirme
           ElevatedButton(
             onPressed: () {
               Navigator.push(
@@ -395,31 +388,36 @@ class _HomeContentState extends State<HomeContent> {
             style: ElevatedButton.styleFrom(minimumSize: Size(double.infinity, 50)),
           ),
           SizedBox(height: 20),
+
+          /// Sağlık karnesi kartları (Şeker ve Tansiyon)
           Text('Sağlık Karnesi', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           SizedBox(height: 10),
           Row(
             children: [
+              // Kan şekeri kartı
               Expanded(
                 child: HealthCard(
                   title: 'Şeker',
                   value: latestSugar != null ? '$latestSugar mg/dL' : '-',
                   riskLevel: latestSugar != null
                       ? (latestSugar < 70
-                      ? 'Düşük'
-                      : latestSugar > 130
-                      ? 'Yüksek'
-                      : 'Normal')
+                          ? 'Düşük'
+                          : latestSugar > 130
+                              ? 'Yüksek'
+                              : 'Normal')
                       : '-',
                   color: latestSugar != null
                       ? (latestSugar < 70
-                      ? Colors.orange
-                      : latestSugar > 130
-                      ? Colors.red
-                      : Colors.green)
+                          ? Colors.orange
+                          : latestSugar > 130
+                              ? Colors.red
+                              : Colors.green)
                       : Colors.grey,
                 ),
               ),
               SizedBox(width: 10),
+
+              // Tansiyon kartı (takvim açılır)
               Expanded(
                 child: GestureDetector(
                   onTap: () => _showCalendarView(context),
@@ -429,10 +427,10 @@ class _HomeContentState extends State<HomeContent> {
                     riskLevel: count == 5 ? bpResult : 'Takvim',
                     color: count == 5
                         ? (bpResult == 'Normal'
-                        ? Colors.green
-                        : bpResult == 'Yüksek'
-                        ? Colors.red
-                        : Colors.orange)
+                            ? Colors.green
+                            : bpResult == 'Yüksek'
+                                ? Colors.red
+                                : Colors.orange)
                         : Colors.blue,
                   ),
                 ),
@@ -440,6 +438,8 @@ class _HomeContentState extends State<HomeContent> {
             ],
           ),
           SizedBox(height: 20),
+
+          /// Son ölçümler listesi
           Text('Son Ölçümler', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           SizedBox(height: 10),
           if (widget.bloodSugarRecords.isNotEmpty)
@@ -448,7 +448,9 @@ class _HomeContentState extends State<HomeContent> {
                 leading: Icon(Icons.monitor_heart, color: Colors.green),
                 title: Text('Açlık Şekeri'),
                 subtitle: Text(
-                    '${widget.bloodSugarRecords.last['value']} mg/dL • ${widget.bloodSugarRecords.last['time'].hour}:${widget.bloodSugarRecords.last['time'].minute.toString().padLeft(2, '0')}'),
+                    '${widget.bloodSugarRecords.last['value']} mg/dL • '
+                    '${widget.bloodSugarRecords.last['time'].hour}:'
+                    '${widget.bloodSugarRecords.last['time'].minute.toString().padLeft(2, '0')}'),
                 trailing: Icon(Icons.arrow_forward_ios),
               ),
             ),
