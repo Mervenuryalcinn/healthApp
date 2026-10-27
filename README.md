@@ -65,10 +65,3 @@ python train_model.py
 
      
 
-🔑 Önemli Notlar
-
-Firebase için google-services.json dosyasını kendi projenize göre eklemeniz gerekir.
-
-Python model dosyasını (medical_t5_model.pkl) Flutter içinde kullanılacak dizine yerleştirin.
-
-Chatbot özelliği geliştirme aşamasındadır ve internet bağlantısı gerektirebilir.
